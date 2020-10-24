@@ -40,13 +40,17 @@ async function main(filename) {
     }
   }
 
+  console.time('predict');
   let prediction = await model.predict(tf.tensor(xs));
-  prediction = await prediction.squeeze(-1).exp().mul(440).array();
+  console.timeEnd('predict');
+  prediction = await prediction.squeeze(-1)
+    .div(100).mul(Math.log(2))
+    .exp().mul(440).array();
 
   const errors = new Map();
   for (const [ i, freq ] of ys.entries()) {
     const predicted = prediction[i];
-    const error = Math.abs(predicted / freq - 1);
+    const error = Math.abs(Math.log(predicted / freq) / Math.log(2) * 100);
 
     if (errors.has(freq)) {
       errors.get(freq).push(error);
@@ -64,13 +68,15 @@ async function main(filename) {
     return b.mean - a.mean;
   });
 
+  const bestMean = list[list.length - 1];
+  console.log('best mean', bestMean);
+
   const worstMean = list[0];
-  console.log(worstMean);
+  console.log('worst mean', worstMean);
 
   list.sort((a, b) => {
     return b.stddev - a.stddev;
   });
-
 
   const worstStddev = list[0];
   console.log(worstMean);
