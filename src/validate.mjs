@@ -41,55 +41,42 @@ async function main(filename) {
   }
 
   console.time('predict');
-  let [ predFreq, predPres ] =
-    await model.predict(tf.tensor(xs)).split([ 1, 1 ], -1);
+  let prediction = await model.predict(tf.tensor(xs));
   console.timeEnd('predict');
-  predFreq = await predFreq.squeeze(-1)
+  prediction = await prediction.squeeze(-1)
     .div(100).mul(Math.log(2))
     .exp().mul(440).array();
 
-  predPres = await predPres.squeeze(-1).array();
-
-  const map = new Map();
+  const errors = new Map();
   for (const [ i, freq ] of ys.entries()) {
-    const predicted = predFreq[i];
+    const predicted = prediction[i];
     const error = Math.abs(Math.log(predicted / freq) / Math.log(2) * 100);
-    const present = predPres[i] > 0 ? 1 : 0;
 
-    if (map.has(freq)) {
-      const entry = map.get(freq);
-      entry.errors.push(error);
-      entry.present.push(present);
+    if (errors.has(freq)) {
+      errors.get(freq).push(error);
     } else {
-      map.set(freq, { errors: [ error ], present: [ present ] });
+      errors.set(freq, [ error ]);
     }
   }
 
   const list = [];
-  for (const [ key, value ] of map) {
-    list.push({
-      freq: key,
-      errors: stats(value.errors),
-      present: stats(value.present),
-    });
+  for (const [ key, value ] of errors) {
+    list.push({ freq: key, ...stats(value) });
   }
 
   list.sort((a, b) => {
-    return b.errors.mean - a.errors.mean;
+    return b.mean - a.mean;
   });
 
   const bestMean = list[list.length - 1];
-  console.log('least mean error', bestMean);
+  console.log('best mean', bestMean);
 
   const worstMean = list[0];
-  console.log('most mean error', worstMean);
+  console.log('worst mean', worstMean);
 
   list.sort((a, b) => {
-    return b.present.mean - a.present.mean;
+    return b.stddev - a.stddev;
   });
-
-  const worstPresent = list[0];
-  console.log('worst mean present', worstMean);
 }
 
 main(process.argv[2]).catch((e) => {

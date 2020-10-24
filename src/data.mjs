@@ -17,7 +17,7 @@ export default class Data {
   }
 
   normalize(list, len = list.length) {
-    let max = 0;
+    let max = 1e-23;
     for (let i = 0; i < len; i++) {
       max = Math.max(max, Math.abs(list[i]));
     }
@@ -73,7 +73,7 @@ export default class Data {
     }
     this.normalize(this.fftIn);
 
-    const noise = Math.random() * 0.4;
+    const noise = Math.random() * 0.75;
     for (let t = 0; t < this.fftIn.length; t++) {
       this.fftIn[t] = this.fftIn[t] * (1 - noise) + Math.random() * noise;
     }
@@ -82,7 +82,7 @@ export default class Data {
     this.fft.realTransform(this.fftOut, this.fftIn);
     this.downsampleFFT();
 
-    const fftNoise = Math.random() * 0.1;
+    const fftNoise = Math.random() * 0.5;
     for (let i = 0; i < this.fftSize >>> 1; i += 2) {
       this.fftOut[i] = this.fftOut[i] * (1 - fftNoise) +
         Math.random() * fftNoise;
@@ -107,7 +107,7 @@ export default class Data {
     this.fft.realTransform(this.fftOut, this.fftIn);
     this.downsampleFFT();
 
-    const fftNoise = Math.random() * 0.1;
+    const fftNoise = Math.random() * 0.5;
     for (let i = 0; i < this.fftSize >>> 1; i += 2) {
       this.fftOut[i] = this.fftOut[i] * (1 - fftNoise) +
         Math.random() * fftNoise;
@@ -118,5 +118,13 @@ export default class Data {
     return {
       fft: this.fftOut.slice(0, this.fftSize >>> 1),
     };
+  }
+
+  fromBuffer(buf) {
+    this.fft.realTransform(this.fftOut, buf);
+    this.downsampleFFT();
+    this.normalize(this.fftOut, this.fftSize >>> 1);
+
+    return this.fftOut.slice(0, this.fftSize >>> 1);
   }
 }
