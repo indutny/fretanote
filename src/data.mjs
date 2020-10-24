@@ -52,31 +52,29 @@ export default class Data {
     return Math.pow(2, Math.random() * 4.7) * 55;
   }
 
-  note(freq) {
-    if (!freq) {
-      freq = this.genFreq();
-    }
+  note(freq = this.genFreq()) {
     const f = freq / this.sampleRate;
-    const phase = Math.random();
-
     const harmonics = [];
     for (let i = 0; i < 1; i++) {
       harmonics.push({
         freq: f,
         wave: this.waves[Math.random(this.waves.length) | 0],
         amp: 1,
+        phase: Math.random(),
       });
     }
 
     // Create a non-main harmonic just to make learning harder
+    /*
     harmonics.push({
       freq: this.genFreq() / this.sampleRate,
       wave: this.waves[Math.random(this.waves.length) | 0],
       amp: 0.25,
     });
+    */
 
     this.fftIn.fill(0);
-    for (const { freq, wave, amp } of harmonics) {
+    for (const { freq, wave, amp, phase } of harmonics) {
       for (let t = 0; t < this.fftIn.length; t++) {
         this.fftIn[t] = amp * wave(freq, t + phase / freq);
       }
