@@ -14,7 +14,9 @@ function generateData(size) {
   for (let i = 0; i < size; i++) {
     const s = data.sample();
     xs.push(s.fft);
-    ys.push(Math.log(s.freq / 440));
+
+    // Cents-scale
+    ys.push(100 * Math.log(s.freq / 440) / Math.log(2));
   }
   return {
     xs: tf.tensor(xs),
