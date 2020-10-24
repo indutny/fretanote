@@ -83,7 +83,7 @@ export default class Data {
     }
     this.normalize(this.fftIn);
 
-    const noise = Math.random() * 0.75;
+    const noise = Math.random() * 0.1;
     for (let t = 0; t < this.fftIn.length; t++) {
       this.fftIn[t] = this.fftIn[t] * (1 - noise) + Math.random() * noise;
     }
