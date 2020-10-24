@@ -40,16 +40,17 @@ export default class Data {
   }
 
   sample(freq) {
+    let presence = true;
+
     // E6=1318
     // A1=55
     if (!freq) {
       freq = Math.pow(2, Math.random() * 4.7) * 55;
+      presence = Math.random() > 0.5;
     }
     const f = freq / this.sampleRate;
     const phase = Math.random();
     const harmonicFade = 0.25 + 0.25 * Math.random();
-
-    const presence = Math.random() > 0.5;
 
     const wave = this.waves[Math.random(this.waves.length) | 0];
 
@@ -69,7 +70,7 @@ export default class Data {
       this.normalize(this.fftIn);
     }
 
-    const noise = 0.2 + Math.random() * 0.3;
+    const noise = Math.random() * 0.5;
     for (let t = 0; t < this.fftIn.length; t++) {
       this.fftIn[t] = this.fftIn[t] * (1 - noise) + Math.random() * noise;
     }
@@ -78,7 +79,7 @@ export default class Data {
     this.fft.realTransform(this.fftOut, this.fftIn);
 
     return {
-      freq: presence ? freq : 1357,
+      freq: presence ? freq : 440,
       presence,
       fft: this.fftOut.slice(0, this.fftSize),
     };

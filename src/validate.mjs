@@ -41,45 +41,55 @@ async function main(filename) {
   }
 
   console.time('predict');
-  let prediction = await model.predict(tf.tensor(xs));
+  let [ predFreq, predPres ] =
+    await model.predict(tf.tensor(xs)).split([ 1, 1 ], -1);
   console.timeEnd('predict');
-  prediction = await prediction.squeeze(-1)
+  predFreq = await predFreq.squeeze(-1)
     .div(100).mul(Math.log(2))
     .exp().mul(440).array();
 
-  const errors = new Map();
-  for (const [ i, freq ] of ys.entries()) {
-    const predicted = prediction[i];
-    const error = Math.abs(Math.log(predicted / freq) / Math.log(2) * 100);
+  predPres = await predPres.squeeze(-1).array();
 
-    if (errors.has(freq)) {
-      errors.get(freq).push(error);
+  const map = new Map();
+  for (const [ i, freq ] of ys.entries()) {
+    const predicted = predFreq[i];
+    const error = Math.abs(Math.log(predicted / freq) / Math.log(2) * 100);
+    const present = predPres[i] > 0 ? 1 : 0;
+
+    if (map.has(freq)) {
+      const entry = map.get(freq);
+      entry.errors.push(error);
+      entry.present.push(present);
     } else {
-      errors.set(freq, [ error ]);
+      map.set(freq, { errors: [ error ], present: [ present ] });
     }
   }
 
   const list = [];
-  for (const [ key, value ] of errors) {
-    list.push({ freq: key, ...stats(value) });
+  for (const [ key, value ] of map) {
+    list.push({
+      freq: key,
+      errors: stats(value.errors),
+      present: stats(value.present),
+    });
   }
 
   list.sort((a, b) => {
-    return b.mean - a.mean;
+    return b.errors.mean - a.errors.mean;
   });
 
   const bestMean = list[list.length - 1];
-  console.log('best mean', bestMean);
+  console.log('least mean error', bestMean);
 
   const worstMean = list[0];
-  console.log('worst mean', worstMean);
+  console.log('most mean error', worstMean);
 
   list.sort((a, b) => {
-    return b.stddev - a.stddev;
+    return b.present.mean - a.present.mean;
   });
 
-  const worstStddev = list[0];
-  console.log(worstMean);
+  const worstPresent = list[0];
+  console.log('worst mean present', worstMean);
 }
 
 main(process.argv[2]).catch((e) => {
