@@ -41,16 +41,12 @@ export default class Data {
 
   sample(freq) {
     let presence = true;
-    let noise = Math.random() * 0.4;
 
     // E6=1318
     // A1=55
     if (!freq) {
       freq = Math.pow(2, Math.random() * 4.7) * 55;
       presence = Math.random() > 0.5;
-      if (!presence) {
-        noise = 1;
-      }
     }
     const f = freq / this.sampleRate;
     const phase = Math.random();
@@ -63,7 +59,7 @@ export default class Data {
       for (let t = 0; t < this.fftIn.length; t++) {
         let signal = 0;
 
-        for (let h = 0; h < 3; h++) {
+        for (let h = 0; h < 4; h++) {
           const harmonicFreq = Math.pow(2, h) * f;
           signal += wave(harmonicFreq, t + phase / harmonicFreq) *
             Math.pow(harmonicFade, h);
@@ -74,11 +70,19 @@ export default class Data {
       this.normalize(this.fftIn);
     }
 
+    const noise = Math.random() * 0.4;
+    for (let t = 0; t < this.fftIn.length; t++) {
+      this.fftIn[t] = this.fftIn[t] * (1 - noise) + Math.random() * noise;
+    }
+    this.normalize(this.fftIn);
+
     this.fft.realTransform(this.fftOut, this.fftIn);
+
+    const fftNoise = Math.random() * 0.1;
     for (let i = 0; i < this.fftSize; i += 2) {
       this.fftOut[i >>> 1] = Math.sqrt(
-        this.fftOut[i] ** 2 + this.fftOut[i + 1] ** 2) * (1 - noise) +
-        Math.random() * noise;
+        this.fftOut[i] ** 2 + this.fftOut[i + 1] ** 2) * (1 - fftNoise) +
+        Math.random() * fftNoise;
     }
 
     return {
