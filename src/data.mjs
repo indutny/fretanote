@@ -49,23 +49,27 @@ export default class Data {
     const phase = Math.random();
     const harmonicFade = 0.25 + 0.25 * Math.random();
 
+    const presence = Math.random() > 0.5;
+
     const wave = this.waves[Math.random(this.waves.length) | 0];
 
     this.fftIn.fill(0);
-    for (let t = 0; t < this.fftIn.length; t++) {
-      let signal = 0;
+    if (presence) {
+      for (let t = 0; t < this.fftIn.length; t++) {
+        let signal = 0;
 
-      for (let h = 0; h < 3; h++) {
-        const harmonicFreq = Math.pow(2, h) * f;
-        signal += wave(harmonicFreq, t + phase / harmonicFreq) *
-          Math.pow(harmonicFade, h);
+        for (let h = 0; h < 3; h++) {
+          const harmonicFreq = Math.pow(2, h) * f;
+          signal += wave(harmonicFreq, t + phase / harmonicFreq) *
+            Math.pow(harmonicFade, h);
+        }
+
+        this.fftIn[t] = signal;
       }
-
-      this.fftIn[t] = signal;
+      this.normalize(this.fftIn);
     }
-    this.normalize(this.fftIn);
 
-    const noise = Math.random() * 0.3;
+    const noise = 0.2 + Math.random() * 0.3;
     for (let t = 0; t < this.fftIn.length; t++) {
       this.fftIn[t] = this.fftIn[t] * (1 - noise) + Math.random() * noise;
     }
@@ -75,6 +79,7 @@ export default class Data {
 
     return {
       freq,
+      presence,
       fft: this.fftOut.slice(0, this.fftSize),
     };
   }

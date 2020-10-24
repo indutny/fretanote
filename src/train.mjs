@@ -16,8 +16,12 @@ function generateData(size) {
     xs.push(s.fft);
 
     // Cents-scale
-    ys.push(100 * Math.log(s.freq / 440) / Math.log(2));
+    ys.push([
+      100 * Math.log(s.freq / 440) / Math.log(2),
+      s.presence ? 1 : -1,
+    ]);
   }
+
   return {
     xs: tf.tensor(xs),
     ys: tf.tensor(ys),
@@ -27,17 +31,17 @@ function generateData(size) {
 async function main() {
   const model = tf.sequential();
 
-  const name = '2048-16x4-1';
+  const name = '2048-32x4-1';
 
   model.add(tf.layers.dense({
     inputShape: [ data.fftSize ],
-    units: 16,
+    units: 32,
     activation: 'relu',
   }));
-  model.add(tf.layers.dense({ units: 16, activation: 'relu' }));
-  model.add(tf.layers.dense({ units: 16, activation: 'relu' }));
-  model.add(tf.layers.dense({ units: 16, activation: 'relu' }));
-  model.add(tf.layers.dense({ units: 1 }));
+  model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+  model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+  model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+  model.add(tf.layers.dense({ units: 2 }));
 
   model.compile({
     optimizer: tf.train.adam(LR),

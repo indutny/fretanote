@@ -4,3 +4,4 @@ saves/*
 !saves/.gitkeep
 logs/*
 !logs/.gitkeep
+dist/
