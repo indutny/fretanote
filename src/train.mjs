@@ -44,6 +44,7 @@ async function main() {
   });
 
   const datasets = new Map();
+  console.log('Training: ' + name);
 
   for (let epoch = 0; epoch < 100000; epoch++) {
     const ds = tf.tidy(() => generateData(512));
