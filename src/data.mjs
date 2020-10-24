@@ -8,6 +8,12 @@ export default class Data {
     this.fft = new FFT(fftSize);
     this.fftIn = new Array(fftSize);
     this.fftOut = this.fft.createComplexArray();
+
+    this.waves = [
+      (a, b) => this.sin(a, b),
+      (a, b) => this.square(a, b),
+      (a, b) => this.saw(a, b),
+    ];
   }
 
   normalize(list) {
@@ -21,6 +27,18 @@ export default class Data {
     }
   }
 
+  sin(freq, t) {
+    return Math.sin(2 * Math.PI * freq * t);
+  }
+
+  square(freq, t) {
+    return this.sin(freq, t) >= 0 ? 1 : -1;
+  }
+
+  saw(freq, t) {
+    return 2 * (t % (1 / freq)) * freq - 1;
+  }
+
   sample(freq) {
     // E6=1318
     // A1=55
@@ -31,12 +49,15 @@ export default class Data {
     const phase = Math.random();
     const harmonicFade = 0.25 + 0.25 * Math.random();
 
+    const wave = this.waves[Math.random(this.waves.length) | 0];
+
     this.fftIn.fill(0);
     for (let t = 0; t < this.fftIn.length; t++) {
       let signal = 0;
 
       for (let h = 0; h < 3; h++) {
-        signal += Math.sin(2 * Math.PI * (Math.pow(2, h) * f * t + phase)) *
+        const harmonicFreq = Math.pow(2, h) * f;
+        signal += wave(harmonicFreq, t + phase / harmonicFreq) *
           Math.pow(harmonicFade, h);
       }
 
