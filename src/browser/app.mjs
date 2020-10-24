@@ -3,8 +3,20 @@ import FFT from 'fft.js';
 
 const out = document.getElementById('freq');
 
+function normalize(l, len) {
+  let max = 1e-23;
+  for (let i = 0; i < buffer.length; i++) {
+    max = Math.max(max, Math.abs(buffer[i]));
+  }
+  for (let i = 0; i < buffer.length; i++) {
+    buffer[i] /= max;
+  }
+}
+
 async function main() {
-  const model = await tf.loadLayersModel('tf/model.json');
+  const detect = await tf.loadLayersModel('tf/detect/model.json');
+  const freq = await tf.loadLayersModel('tf/freq/model.json');
+
   const fft = new FFT(model.inputs[0].shape[1]);
   const fftOut = fft.createComplexArray();
 
@@ -25,16 +37,13 @@ async function main() {
     analyser.getFloatTimeDomainData(buffer);
 
     // Normalize
-    let max = 1e-23;
-    for (let i = 0; i < buffer.length; i++) {
-      max = Math.max(max, Math.abs(buffer[i]));
-    }
-    for (let i = 0; i < buffer.length; i++) {
-      buffer[i] /= max;
-    }
+    normalize(buffer);
 
     // Compute FFT
     fft.realTransform(fftOut, buffer);
+    for (let i = 0; i < fft.size; i += 2) {
+      fftOut[i >>> 1] = Math.sqrt(fftOut[i] ** 2 + fftOut[i + 1] ** 2);
+    }
 
     let prediction = await model.predict(
       tf.tensor([ fftOut.slice(0, fft.size) ]));

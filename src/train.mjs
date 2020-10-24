@@ -63,7 +63,7 @@ async function main() {
   freq.add(tf.layers.dense({ units: 1 }));
 
   const detect = tf.sequential({
-    name: 'detect-32x4-1',
+    name: 'detect-4-2',
   });
 
   detect.add(tf.layers.dense({
@@ -81,7 +81,7 @@ async function main() {
 
   detect.compile({
     optimizer: tf.train.adam(LR),
-    loss: 'meanSquaredError',
+    loss: 'categoricalCrossentropy',
     metrics: [ tf.metrics.binaryAccuracy ],
   });
 

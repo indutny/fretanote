@@ -16,7 +16,7 @@ export default class Data {
     ];
   }
 
-  normalize(list, len) {
+  normalize(list, len = list.length) {
     let max = 0;
     for (let i = 0; i < len; i++) {
       max = Math.max(max, Math.abs(list[i]));
