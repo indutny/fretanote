@@ -57,7 +57,6 @@ async function main() {
     tf.dispose(ds);
 
     if (epoch % 100 === 0) {
-      console.log('saving...');
       await model.save('file://' + path.resolve('./saves/' + name));
     }
   }
