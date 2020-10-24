@@ -8,5 +8,10 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@tensorflow/tfjs": "^2.6.0",
+    "@tensorflow/tfjs-node": "^2.6.0",
+    "fft.js": "^4.0.3"
+  }
 }
