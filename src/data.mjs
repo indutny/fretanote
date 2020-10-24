@@ -10,13 +10,16 @@ export default class Data {
     this.fftOut = this.fft.createComplexArray();
   }
 
-  sample() {
+  sample(freq) {
     // E6=1318
     // A1=55
-    const freq = Math.pow(2, Math.random() * 4.7) * 55;
+    if (!freq) {
+      freq = Math.pow(2, Math.random() * 4.7) * 55;
+    }
     const f = freq / this.sampleRate;
     const phase = Math.random();
     const harmonicFade = 0.25 + 0.25 * Math.random();
+    const noise = Math.random() * 0.3;
 
     let norm = 0;
     for (let h = 0; h < 3; h++) {
@@ -34,7 +37,7 @@ export default class Data {
       }
       signal /= norm;
 
-      signal = signal * 0.8 + Math.random() * 0.2;
+      signal = signal * (1 - noise) + Math.random() * noise;
       this.fftIn[t] = signal;
     }
 
