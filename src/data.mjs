@@ -72,7 +72,7 @@ export default class Data {
     harmonics.push({
       freq: this.genFreq() / this.sampleRate,
       wave: this.waves[Math.random(this.waves.length) | 0],
-      amp: 0.75,
+      amp: 0.25,
     });
 
     this.fftIn.fill(0);
@@ -83,7 +83,7 @@ export default class Data {
     }
     this.normalize(this.fftIn);
 
-    const noise = Math.random() * 0.1;
+    const noise = Math.random() * 0.75;
     for (let t = 0; t < this.fftIn.length; t++) {
       this.fftIn[t] = this.fftIn[t] * (1 - noise) + Math.random() * noise;
     }
