@@ -16,13 +16,13 @@ export default class Data {
     ];
   }
 
-  normalize(list) {
+  normalize(list, len) {
     let max = 0;
-    for (let i = 0; i < list.length; i++) {
+    for (let i = 0; i < len; i++) {
       max = Math.max(max, Math.abs(list[i]));
     }
 
-    for (let i = 0; i < list.length; i++) {
+    for (let i = 0; i < len; i++) {
       list[i] /= max;
     }
   }
@@ -39,36 +39,39 @@ export default class Data {
     return 2 * (t % (1 / freq)) * freq - 1;
   }
 
-  sample(freq) {
-    let presence = true;
+  downsampleFFT() {
+    for (let i = 0; i < this.fftSize; i += 2) {
+      this.fftOut[i >>> 1] = Math.sqrt(
+        this.fftOut[i] ** 2 + this.fftOut[i + 1] ** 2);
+    }
+  }
 
+  note(freq) {
     // E6=1318
     // A1=55
     if (!freq) {
       freq = Math.pow(2, Math.random() * 4.7) * 55;
-      presence = Math.random() > 0.5;
     }
     const f = freq / this.sampleRate;
     const phase = Math.random();
     const harmonicFade = 0.25 + 0.25 * Math.random();
 
-    const wave = this.waves[Math.random(this.waves.length) | 0];
+    const harmonics = [];
+    for (let i = 0; i < 4; i++) {
+      harmonics.push({
+        freq: Math.pow(2, i) * f,
+        wave: this.waves[Math.random(this.waves.length) | 0],
+        amp: Math.pow(harmonicFade, i),
+      });
+    }
 
     this.fftIn.fill(0);
-    if (presence) {
+    for (const { freq, wave, amp } of harmonics) {
       for (let t = 0; t < this.fftIn.length; t++) {
-        let signal = 0;
-
-        for (let h = 0; h < 4; h++) {
-          const harmonicFreq = Math.pow(2, h) * f;
-          signal += wave(harmonicFreq, t + phase / harmonicFreq) *
-            Math.pow(harmonicFade, h);
-        }
-
-        this.fftIn[t] = signal;
+        this.fftIn[t] = amp * wave(freq, t + phase / freq);
       }
-      this.normalize(this.fftIn);
     }
+    this.normalize(this.fftIn);
 
     const noise = Math.random() * 0.4;
     for (let t = 0; t < this.fftIn.length; t++) {
@@ -77,17 +80,42 @@ export default class Data {
     this.normalize(this.fftIn);
 
     this.fft.realTransform(this.fftOut, this.fftIn);
+    this.downsampleFFT();
 
     const fftNoise = Math.random() * 0.1;
-    for (let i = 0; i < this.fftSize; i += 2) {
-      this.fftOut[i >>> 1] = Math.sqrt(
-        this.fftOut[i] ** 2 + this.fftOut[i + 1] ** 2) * (1 - fftNoise) +
+    for (let i = 0; i < this.fftSize >>> 1; i += 2) {
+      this.fftOut[i] = this.fftOut[i] * (1 - fftNoise) +
         Math.random() * fftNoise;
     }
 
+    this.normalize(this.fftOut, this.fftSize >>> 1);
+
     return {
-      freq: presence ? freq : 440,
-      presence,
+      freq,
+      fft: this.fftOut.slice(0, this.fftSize >>> 1),
+    };
+  }
+
+  noise() {
+    this.fftIn.fill(0);
+
+    for (let t = 0; t < this.fftIn.length; t++) {
+      this.fftIn[t] = Math.random();
+    }
+    this.normalize(this.fftIn);
+
+    this.fft.realTransform(this.fftOut, this.fftIn);
+    this.downsampleFFT();
+
+    const fftNoise = Math.random() * 0.1;
+    for (let i = 0; i < this.fftSize >>> 1; i += 2) {
+      this.fftOut[i] = this.fftOut[i] * (1 - fftNoise) +
+        Math.random() * fftNoise;
+    }
+
+    this.normalize(this.fftOut, this.fftSize >>> 1);
+
+    return {
       fft: this.fftOut.slice(0, this.fftSize >>> 1),
     };
   }
