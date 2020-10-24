@@ -38,7 +38,12 @@ export default class Data {
       signal /= norm;
 
       signal = signal * (1 - noise) + Math.random() * noise;
+      max = Math.max(max, Math.abs(signal));
       this.fftIn[t] = signal;
+    }
+
+    for (let t = 0; t < this.fftIn.length; t++) {
+      this.fftIn[t] /= max;
     }
 
     this.fft.realTransform(this.fftOut, this.fftIn);
