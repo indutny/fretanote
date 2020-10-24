@@ -34,7 +34,7 @@ async function main(filename) {
   const xs = [];
   const ys = [];
   for (const freq of notes) {
-    for (let i = 0; i < 64; i++) {
+    for (let i = 0; i < 128; i++) {
       xs.push(data.sample(freq).fft);
       ys.push(freq);
     }
