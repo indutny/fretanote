@@ -94,7 +94,7 @@ async function main() {
     callbacks: [ tf.node.tensorBoard(path.join(LOG_DIR, detect.name)) ],
     genData: () => generateNoteData(512),
   }].filter((m) => {
-    return m.name.includes(process.argv[2]);
+    return m.model.name.includes(process.argv[2]);
   });
   console.log(`Training: ${models.map((m) => m.model.name).join(', ')}`);
 
