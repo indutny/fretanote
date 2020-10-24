@@ -78,7 +78,7 @@ export default class Data {
     this.fft.realTransform(this.fftOut, this.fftIn);
 
     return {
-      freq,
+      freq: presence ? freq : 1357,
       presence,
       fft: this.fftOut.slice(0, this.fftSize),
     };
