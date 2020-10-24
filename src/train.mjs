@@ -34,7 +34,7 @@ async function main() {
   const name = '2048-32x4-1';
 
   model.add(tf.layers.dense({
-    inputShape: [ data.fftSize ],
+    inputShape: [ data.fftSize >>> 1 ],
     units: 32,
     activation: 'relu',
   }));
