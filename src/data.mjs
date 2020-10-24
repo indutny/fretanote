@@ -46,24 +46,34 @@ export default class Data {
     }
   }
 
-  note(freq) {
+  genFreq() {
     // E6=1318
     // A1=55
+    return Math.pow(2, Math.random() * 4.7) * 55;
+  }
+
+  note(freq) {
     if (!freq) {
-      freq = Math.pow(2, Math.random() * 4.7) * 55;
+      freq = this.genFreq();
     }
     const f = freq / this.sampleRate;
     const phase = Math.random();
-    const harmonicFade = 0.25 + 0.25 * Math.random();
 
     const harmonics = [];
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 1; i++) {
       harmonics.push({
-        freq: Math.pow(2, i) * f,
+        freq: f,
         wave: this.waves[Math.random(this.waves.length) | 0],
-        amp: Math.pow(harmonicFade, i),
+        amp: 1,
       });
     }
+
+    // Create a non-main harmonic just to make learning harder
+    harmonics.push({
+      freq: this.genFreq() / this.sampleRate,
+      wave: this.waves[Math.random(this.waves.length) | 0],
+      amp: 0.75,
+    });
 
     this.fftIn.fill(0);
     for (const { freq, wave, amp } of harmonics) {
